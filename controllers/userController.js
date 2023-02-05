@@ -10,9 +10,9 @@ const createToken = (_id) => {
 
 // user registration controller
 const registerUser = async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
+  const { name, email, password } = req.body;
 
+  try {
     // find user in db
     let user = await userModel.findOne({ email });
 
@@ -22,11 +22,12 @@ const registerUser = async (req, res) => {
     if (!name || !email || !password)
       return res.status(400).json("All fields are required");
     if (!validator.isEmail(email))
-      res
+      return res
         .status(400)
         .json("Invalid email, please provide a valid email address");
+
     if (!validator.isStrongPassword(password))
-      res
+      return res
         .status(400)
         .json(
           "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character"
@@ -52,6 +53,33 @@ const registerUser = async (req, res) => {
   }
 };
 
+// user login controller
+const loginUser = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    // find a user in db
+    let user = await userModel.findOne({ email });
+
+    if (!user) return res.status(400).json("Invalid email or password");
+
+    // comparing passwords
+    const isValidPassword = await bcrypt.compare(password, user.password);
+
+    if (!isValidPassword)
+      return res.status(400).json("Invalid email or password");
+
+    // generate a jwt token
+    const token = createToken(user._id);
+
+    res.status(200).json({ _id: user._id, name: user.name, email, token });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+};
+
 module.exports = {
   registerUser,
+  loginUser,
 };
