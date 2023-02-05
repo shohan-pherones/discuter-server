@@ -14,6 +14,11 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+// api endpoints
+app.get("/", (req, res) => {
+  res.send("Welcome to our server!");
+});
+
 // listening
 app.listen(port, (req, res) => {
   console.log(`Server running on port: ${port}`);
